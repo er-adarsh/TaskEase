@@ -1,32 +1,202 @@
-# Prerequisites
-*.d
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+using namespace std;
 
-# Precompiled Headers
-*.gch
-*.pch
+// Class representing a task or job
+class Job {
+public:
+    Job(const string& taskDescription) : taskDescription(taskDescription), isTaskCompleted(false) {}
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+    // Mark the task as completed
+    void markAsCompleted() {
+        isTaskCompleted = true;
+    }
 
-# Fortran module files
-*.mod
-*.smod
+    // Update the task description
+    void updateTaskDescription(const string& newDescription) {
+        taskDescription = newDescription;
+    }
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+    // Check if the task is completed
+    bool isCompleted() const {
+        return isTaskCompleted;
+    }
 
-# Executables
-*.exe
-*.out
-*.app
+    // Get the task description
+    const string& getTaskDescription() const {
+        return taskDescription;
+    }
+
+private:
+    string taskDescription;
+    bool isTaskCompleted;
+};
+
+// Class managing a list of tasks
+class TaskManager {
+public:
+    // Add a new task to the list
+    void addTask(const string& taskDescription) {
+        taskList.emplace_back(taskDescription);
+        cout << "Task added: " << taskDescription << "\n";
+    }
+
+    // Display the list of tasks
+    void showTasks() const {
+        displayTaskList(taskList, "To-Do List");
+    }
+
+    // Display the list of completed tasks
+    void showCompletedTasks() const {
+        auto completedTasks = getCompletedTasks();
+        displayTaskList(completedTasks, "Completed Tasks");
+    }
+
+    // Mark a task as completed
+    void completeTask(int index) {
+        completeJob(index, "Task marked as completed");
+    }
+
+    // Edit the description of a task
+    void editTaskDescription(int index, const string& newDescription) {
+        if (isValidIndex(index)) {
+            taskList[index - 1].updateTaskDescription(newDescription);
+            cout << "Task description updated.\n";
+        } else {
+            cout << "Invalid task index.\n";
+        }
+    }
+
+    // Remove a task from the list
+    void removeTask(int index) {
+        if (isValidIndex(index)) {
+            cout << "Task removed: " << taskList[index - 1].getTaskDescription() << "\n";
+            taskList.erase(taskList.begin() + index - 1);
+        } else {
+            cout << "Invalid task index.\n";
+        }
+    }
+
+private:
+    vector<Job> taskList;
+
+    // Check if the index is valid
+    bool isValidIndex(int index) const {
+        return index >= 1 && index <= static_cast<int>(taskList.size());
+    }
+
+    // Display a list of tasks
+    void displayTaskList(const vector<Job>& taskList, const string& title) const {
+        if (taskList.empty()) {
+            cout << "No tasks in the " << title << ".\n";
+        } else {
+            cout << title << ":\n";
+            for (size_t i = 0; i < taskList.size(); ++i) {
+                cout << i + 1 << ". " << taskList[i].getTaskDescription();
+                if (taskList[i].isCompleted()) {
+                    cout << " (Completed)";
+                }
+                cout << "\n";
+            }
+        }
+    }
+
+    // Get a list of completed tasks
+    vector<Job> getCompletedTasks() const {
+        vector<Job> completedTasks;
+        copy_if(taskList.begin(), taskList.end(), back_inserter(completedTasks),
+                [](const Job& job) { return job.isCompleted(); });
+        return completedTasks;
+    }
+
+    // Mark a task as completed and display a success message
+    void completeJob(int index, const string& successMessage) {
+        if (isValidIndex(index)) {
+            taskList[index - 1].markAsCompleted();
+            cout << successMessage << ": " << taskList[index - 1].getTaskDescription() << "\n";
+        } else {
+            cout << "Invalid task index.\n";
+        }
+    }
+};
+
+// Main function
+int main() {
+    TaskManager taskManager;
+
+    cout<<"** TaskEase ** (Simple to-do-list)"<<endl;
+    char choice;
+    do {
+        // Menu for the application
+        cout << "\nOptions:\n";
+        cout << "1. Add Task\n";
+        cout << "2. Show Tasks\n";
+        cout << "3. Show Completed Tasks\n";
+        cout << "4. Complete Task\n";
+        cout << "5. Edit Task Description\n";
+        cout << "6. Remove Task\n";
+        cout << "7. Exit\n";
+        cout << "Enter your choice (1-7): ";
+        cin >> choice;
+
+        switch (choice) {
+            case '1': {
+                string taskDescription;
+                cout << "Enter task description: ";
+                cin.ignore();
+                getline(cin, taskDescription);
+                taskManager.addTask(taskDescription);
+                break;
+            }
+
+            case '2':
+                taskManager.showTasks();
+                break;
+
+            case '3':
+                taskManager.showCompletedTasks();
+                break;
+
+            case '4': {
+                int taskIndex;
+                cout << "Enter the index of the task to mark as completed: ";
+                cin >> taskIndex;
+                taskManager.completeTask(taskIndex);
+                break;
+            }
+
+            case '5': {
+                int taskIndex;
+                string newDescription;
+                cout << "Enter the index of the task to edit: ";
+                cin >> taskIndex;
+                cout << "Enter the new task description: ";
+                cin.ignore();
+                getline(cin, newDescription);
+                taskManager.editTaskDescription(taskIndex, newDescription);
+                break;
+            }
+
+            case '6': {
+                int taskIndex;
+                cout << "Enter the index of the task to remove: ";
+                cin >> taskIndex;
+                taskManager.removeTask(taskIndex);
+                break;
+            }
+
+            case '7':
+                cout << "Exiting the To-Do List App.\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != '7');
+
+    return 0;
+}
+
